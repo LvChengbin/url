@@ -5,7 +5,7 @@
   "keywords": "url-polyfill",
   "repository": {
     "type": "git",
-    "url": "git@gitlab.com:jaunty/jauntyjs.git"
+    "url": "git@github.com:LvChengbin/url-pollfill.git"
   },
   "devDependencies": {
     "eslint": "^4.14.0",
@@ -32,7 +32,7 @@
     "precommit-msg",
     "lint"
   ],
-  "main": "gulpfile.js",
+  "main": "",
   "author": "LvChengbin",
   "dependencies": {}
 }
