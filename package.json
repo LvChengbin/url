@@ -1,0 +1,38 @@
+{
+  "name": "url-polyfill",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": "url-polyfill",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.com:jaunty/jauntyjs.git"
+  },
+  "devDependencies": {
+    "eslint": "^4.14.0",
+    "jasmine-core": "^2.8.0",
+    "karma": "^2.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-es6-shim": "^1.0.0",
+    "karma-jasmine": "^1.1.1",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "karma-rollup-preprocessor": "^5.0.2",
+    "optimist": "^0.6.1",
+    "pre-commit": "^1.2.2",
+    "puppeteer": "^0.13.0",
+    "rollup": "^0.53.3",
+    "rollup-plugin-babel": "^3.0.3",
+    "run-sequence": "^2.2.0"
+  },
+  "scripts": {
+    "test": "karma start",
+    "lint": "eslint ./ --cache --ignore-path .eslintignore",
+    "precommit-msg": "echo 'Pre-commit checks...' && exit 0"
+  },
+  "pre-commit": [
+    "precommit-msg",
+    "lint"
+  ],
+  "main": "gulpfile.js",
+  "author": "LvChengbin",
+  "dependencies": {}
+}
