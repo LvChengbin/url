@@ -15,10 +15,6 @@ function valid( url ) {
     return /^(https?|ftp):/i.test( a.protocol );
 }
 
-/**
- * Most of browsers, we need to support, support URL API except IE 9~11.
- */
-
 export default class URL {
     constructor( path, base ) {
         if( window.URL ) {
@@ -75,7 +71,7 @@ export default class URL {
             for( const attr of attrs ) {
                 this[ attr ] = attr in node ? node[ attr ] : '';
             }
-            this.searchParams = new URLSearchParams( node.search ); 
+            this.searchParams = new URLSearchParams( this.search ); 
         }
     }
 }
