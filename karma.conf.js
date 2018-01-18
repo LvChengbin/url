@@ -3,6 +3,8 @@
 
 process.env.CHROME_BIN = require( 'puppeteer' ).executablePath();
 
+const resolve = require( 'rollup-plugin-node-resolve' );
+
 //const babel = require( 'rollup-plugin-babel' );
 
 module.exports = function(config) {
@@ -35,7 +37,10 @@ module.exports = function(config) {
         // 
         rollupPreprocessor : {
             plugins : [
-                //babel()
+                resolve( {
+                    module : true,
+                    jsnext : true
+                } )
             ],
             output : {
                 format : 'iife'

@@ -1,3 +1,4 @@
+import isUrl from '@lvchengbin/is/src/url';
 import URLSearchParams from './url-search-params';
 
 const attrs = [
@@ -5,15 +6,6 @@ const attrs = [
     'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
     'username', 'password', 'searchParams'
 ];
-
-// For validating URL with allowing the private and local networks.
-function valid( url ) {
-    if ( typeof url !== 'string' ) return false;
-    if( !/^(https?|ftp):\/\//i.test( url ) ) return false;
-    const a = document.createElement( 'a' );
-    a.href = url;
-    return /^(https?|ftp):/i.test( a.protocol );
-}
 
 export default class URL {
     constructor( path, base ) {
@@ -33,7 +25,7 @@ export default class URL {
             path = String( path );
 
             if( base !== undefined ) {
-                if( !valid( base ) ) {
+                if( !isUrl( base ) ) {
                     throw new TypeError( 'Failed to construct "URL": Invalid base URL' );
                 }
                 if( /^[a-zA-Z][0-9a-zA-Z.-]*:/.test( path ) ) {
