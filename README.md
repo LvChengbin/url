@@ -17,5 +17,5 @@ const { URL, URLSearchParams } = require( '@lvchengbin/url' );
 ### ES6
 
 ```js
-import { URL, URLSearchParams } = require( '@lvchengbin/url' );
+import { URL, URLSearchParams } from '@lvchengbin/url';
 ```
