@@ -87,7 +87,11 @@ describe( 'URL', () => {
         } );
 
         it( 'searchParams', () => {
-            expect( new URL( base ).searchParams instanceof URLSearchParams ).toBeTruthy();
+            if( window.URLSearchParams ) {
+                expect( new URL( base ).searchParams instanceof window.URLSearchParams ).toBeTruthy();
+            } else {
+                expect( new URL( base ).searchParams instanceof URLSearchParams ).toBeTruthy();
+            }
         } );
     } );
 
@@ -206,11 +210,11 @@ describe( 'URLSearchParams', () => {
     it( 'set', () => {
         const searchParams = new URLSearchParams( { x : 1 } );
         searchParams.set( 'x', 2 );
-        expect( searchParams.get( 'x' ) ).toEqual( 2 );
+        expect( searchParams.get( 'x' ) ).toEqual( '2' );
         searchParams.append( 'x', 3 );
         searchParams.set( 'x', 4 );
-        expect( searchParams.get( 'x' ) ).toEqual( 4 );
-        expect( searchParams.getAll( 'x' ) ).toEqual( [ 4 ] );
+        expect( searchParams.get( 'x' ) ).toEqual( '4' );
+        expect( searchParams.getAll( 'x' ) ).toEqual( [ '4' ] );
     } );
 
     it( 'sort', () => {

@@ -1,6 +1,6 @@
 {
   "name": "@lvchengbin/url",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Polyfill of URL and URLSearchParams for browsers.",
   "keywords": [ 
       "URL",

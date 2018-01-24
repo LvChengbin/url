@@ -10,31 +10,35 @@ const decode = str => decodeURIComponent( String( str ).replace( /\+/g, ' ' ) );
 
 export default class URLSearchParams {
     constructor( init ) {
-        this.dict = [];
+        if( window.URLSearchParams ) {
+            return new window.URLSearchParams( init );
+        } else {
+            this.dict = [];
 
-        if( !init ) return;
+            if( !init ) return;
 
-        if( Array.isArray( init ) ) {
-            throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
-        }
-
-        if( typeof init === 'string' ) {
-            if( init.charAt(0) === '?' ) {
-                init = init.slice( 1 );
+            if( Array.isArray( init ) ) {
+                throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
             }
-            const pairs = init.split( /&+/ );
-            for( const item of pairs ) {
-                const index = item.indexOf( '=' );
-                this.append(
-                    index > -1 ? item.slice( 0, index ) : item,
-                    index > -1 ? item.slice( index + 1 ) : ''
-                );
-            }
-            return;
-        }
 
-        for( let attr in init ) {
-            this.append( attr, init[ attr ] );
+            if( typeof init === 'string' ) {
+                if( init.charAt(0) === '?' ) {
+                    init = init.slice( 1 );
+                }
+                const pairs = init.split( /&+/ );
+                for( const item of pairs ) {
+                    const index = item.indexOf( '=' );
+                    this.append(
+                        index > -1 ? item.slice( 0, index ) : item,
+                        index > -1 ? item.slice( index + 1 ) : ''
+                    );
+                }
+                return;
+            }
+
+            for( let attr in init ) {
+                this.append( attr, init[ attr ] );
+            }
         }
     }
     append( name, value ) {
@@ -83,7 +87,7 @@ export default class URLSearchParams {
                     this.dict.splice( i, 1 );
                     i--; l--;
                 } else {
-                    item[ 1 ] = value;
+                    item[ 1 ] = String( value );
                     set = true;
                 }
             }

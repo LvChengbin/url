@@ -76,50 +76,54 @@ var URLSearchParams = function () {
     function URLSearchParams(init) {
         classCallCheck(this, URLSearchParams);
 
-        this.dict = [];
+        if (window.URLSearchParams) {
+            return new window.URLSearchParams(init);
+        } else {
+            this.dict = [];
 
-        if (!init) return;
+            if (!init) return;
 
-        if (Array.isArray(init)) {
-            throw new TypeError('Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.');
-        }
-
-        if (typeof init === 'string') {
-            if (init.charAt(0) === '?') {
-                init = init.slice(1);
+            if (Array.isArray(init)) {
+                throw new TypeError('Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.');
             }
-            var pairs = init.split(/&+/);
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
 
-            try {
-                for (var _iterator = pairs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    var item = _step.value;
-
-                    var index = item.indexOf('=');
-                    this.append(index > -1 ? item.slice(0, index) : item, index > -1 ? item.slice(index + 1) : '');
+            if (typeof init === 'string') {
+                if (init.charAt(0) === '?') {
+                    init = init.slice(1);
                 }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
-            } finally {
+                var pairs = init.split(/&+/);
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
                 try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
-                        _iterator.return();
+                    for (var _iterator = pairs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var item = _step.value;
+
+                        var index = item.indexOf('=');
+                        this.append(index > -1 ? item.slice(0, index) : item, index > -1 ? item.slice(index + 1) : '');
                     }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
                 } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
                     }
                 }
+
+                return;
             }
 
-            return;
-        }
-
-        for (var attr in init) {
-            this.append(attr, init[attr]);
+            for (var attr in init) {
+                this.append(attr, init[attr]);
+            }
         }
     }
 
@@ -247,7 +251,7 @@ var URLSearchParams = function () {
                         this.dict.splice(i, 1);
                         i--;l--;
                     } else {
-                        item[1] = value;
+                        item[1] = String(value);
                         set$$1 = true;
                     }
                 }
