@@ -1,11 +1,11 @@
 {
   "name": "@lvchengbin/url",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Polyfill of URL and URLSearchParams for browsers.",
-  "keywords": [ 
-      "URL",
-      "URLSearchParams",
-      "polyfill"
+  "keywords": [
+    "URL",
+    "URLSearchParams",
+    "polyfill"
   ],
   "repository": {
     "type": "git",
@@ -47,6 +47,6 @@
   "author": "LvChengbin",
   "license": "MIT",
   "dependencies": {
-    "@lvchengbin/is": "0.0.4"
+    "@lvchengbin/is": "0.0.9"
   }
 }
