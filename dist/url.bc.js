@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.URL = factory());
-}(this, (function () { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(factory((global.URL = {})));
+}(this, (function (exports) { 'use strict';
 
 var isString = (function (str) {
   return typeof str === 'string' || str instanceof String;
@@ -513,8 +513,9 @@ var URL = function URL(path, base) {
     }
 };
 
-var index = { URL: URL, URLSearchParams: URLSearchParams };
+exports.URL = URL;
+exports.URLSearchParams = URLSearchParams;
 
-return index;
+Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

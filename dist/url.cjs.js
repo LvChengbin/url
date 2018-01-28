@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var isString = str => typeof str === 'string' || str instanceof String;
 
 var isUrl = url => {
@@ -256,6 +258,5 @@ class URL {
     }
 }
 
-var index = { URL, URLSearchParams }
-
-module.exports = index;
+exports.URL = URL;
+exports.URLSearchParams = URLSearchParams;
