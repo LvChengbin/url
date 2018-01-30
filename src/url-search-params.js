@@ -17,6 +17,10 @@ export default class URLSearchParams {
 
             if( !init ) return;
 
+            if( URLSearchParams.prototype.isPrototypeOf( init ) ) {
+                return new URLSearchParams( init.toString() );
+            }
+
             if( Array.isArray( init ) ) {
                 throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
             }

@@ -26,6 +26,14 @@ describe( 'URL', () => {
             expect( () => { new URL( 'x', 'http://333.0.0.0' ) } ).toThrowError( TypeError, message );
         } );
 
+        it( 'Create with URL instance', () => {
+            const u = new URL( 'http://google.com' );
+            const u2 = new URL( u );
+            expect( u2.href ).toEqual( 'http://google.com/' );
+            expect( u === u2 ).toBeFalsy();
+            expect( new URL( '/abc', new URL( 'http://x.com' ) ).href ).toEqual( 'http://x.com/abc' );
+        } );
+
         it( 'href', () => {
             expect( new URL( '/abc', href ).href ).toEqual( host + '/abc' );
             expect( new URL( 'abc', href ).href ).toEqual( host + '/abc' );
@@ -44,6 +52,7 @@ describe( 'URL', () => {
             expect( new URL( '../../e', base ).href ).toEqual( 'http://192.168.0.1:3942/a/e' );
             expect( new URL( './f', base ).href ).toEqual( 'http://192.168.0.1:3942/a/b/c/f' );
             expect( new URL( 'http://你好.中国' ).href ).toEqual( 'http://xn--6qq79v.xn--fiqs8s/'  );
+            expect( new URL( 'http://www.google.com', 'http://www.youtube.com' ).href ).toEqual( 'http://www.google.com/' );
         } );
 
         it( 'protocol', () => {
@@ -98,6 +107,9 @@ describe( 'URL', () => {
 } );
 
 describe( 'URLSearchParams', () => {
+
+    window.URLSearchParams = null;
+
     it( 'toString', () => {
         expect( new URLSearchParams( { x : 1 } ).toString() ).toEqual( 'x=1' );
         expect( new URLSearchParams( { '&' : '=' } ).toString() ).toEqual( '%26=%3D' );
@@ -248,5 +260,11 @@ describe( 'URLSearchParams', () => {
             i++;
         }
         expect( i ).toEqual( 4 );
+    } );
+
+    it( 'to create with another URLSearchParams instance', () => {
+        const u = new URLSearchParams( { x : 1, y : 2 } );
+        const u2 = new URLSearchParams( u );
+        expect( u2.toString() ).toEqual( 'x=1&y=2' );
     } );
 } );

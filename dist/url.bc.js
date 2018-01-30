@@ -83,6 +83,10 @@ var URLSearchParams = function () {
 
             if (!init) return;
 
+            if (URLSearchParams.prototype.isPrototypeOf(init)) {
+                return new URLSearchParams(init.toString());
+            }
+
             if (Array.isArray(init)) {
                 throw new TypeError('Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.');
             }
@@ -445,6 +449,14 @@ var URL = function URL(path, base) {
         }
         return url;
     } else {
+
+        if (URL.prototype.isPrototypeOf(path)) {
+            return new URL(path.href);
+        }
+
+        if (URL.prototype.isPrototypeOf(base)) {
+            return new URL(path, base.href);
+        }
 
         path = String(path);
 

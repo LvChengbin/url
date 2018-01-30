@@ -22,6 +22,14 @@ export default class URL {
             return url;
         } else {
 
+            if( URL.prototype.isPrototypeOf( path ) ) {
+                return new URL( path.href );
+            }
+
+            if( URL.prototype.isPrototypeOf( base ) ) {
+                return new URL( path, base.href );
+            }
+
             path = String( path );
 
             if( base !== undefined ) {
