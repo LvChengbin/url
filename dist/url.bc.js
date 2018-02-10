@@ -434,96 +434,117 @@ var URLSearchParams = function () {
 
 var attrs = ['href', 'origin', 'host', 'hash', 'hostname', 'pathname', 'port', 'protocol', 'search', 'username', 'password', 'searchParams'];
 
-var URL = function URL(path, base) {
-    classCallCheck(this, URL);
+var URL = function () {
+    function URL(path, base) {
+        classCallCheck(this, URL);
 
-    if (window.URL) {
-        var url = void 0;
-        if (typeof base === 'undefined') {
-            url = new window.URL(path);
-        } else {
-            url = new window.URL(path, base);
-        }
-        if (!('searchParams' in url)) {
-            url.searchParams = new URLSearchParams(url.search);
-        }
-        return url;
-    } else {
-
-        if (URL.prototype.isPrototypeOf(path)) {
-            return new URL(path.href);
-        }
-
-        if (URL.prototype.isPrototypeOf(base)) {
-            return new URL(path, base.href);
-        }
-
-        path = String(path);
-
-        if (base !== undefined) {
-            if (!isUrl(base)) {
-                throw new TypeError('Failed to construct "URL": Invalid base URL');
-            }
-            if (/^[a-zA-Z][0-9a-zA-Z.-]*:/.test(path)) {
-                base = null;
-            }
-        } else {
-            if (!/^[a-zA-Z][0-9a-zA-Z.-]*:/.test(path)) {
-                throw new TypeError('Failed to construct "URL": Invalid URL');
-            }
-        }
-
-        if (base) {
-            base = new URL(base);
-            if (path.charAt(0) === '/' && path.charAt(1) === '/') {
-                path = base.protocol + path;
-            } else if (path.charAt(0) === '/') {
-                path = base.origin + path;
+        if (window.URL) {
+            var url = void 0;
+            if (typeof base === 'undefined') {
+                url = new window.URL(path);
             } else {
-                path = base.origin + base.pathname.replace(/\/[^/]+\/?$/, '') + '/' + path;
+                url = new window.URL(path, base);
             }
-        }
-
-        var dotdot = /([^/])\/[^/]+\/\.\.\//;
-        var dot = /\/\.\//g;
-
-        path = path.replace(dot, '/');
-
-        while (path.match(dotdot)) {
-            path = path.replace(dotdot, '$1/');
-        }
-
-        var node = document.createElement('a');
-        node.href = path;
-
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = attrs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var attr = _step.value;
-
-                this[attr] = attr in node ? node[attr] : '';
+            if (!('searchParams' in url)) {
+                url.searchParams = new URLSearchParams(url.search);
             }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
+            return url;
+        } else {
+
+            if (URL.prototype.isPrototypeOf(path)) {
+                return new URL(path.href);
+            }
+
+            if (URL.prototype.isPrototypeOf(base)) {
+                return new URL(path, base.href);
+            }
+
+            path = String(path);
+
+            if (base !== undefined) {
+                if (!isUrl(base)) {
+                    throw new TypeError('Failed to construct "URL": Invalid base URL');
+                }
+                if (/^[a-zA-Z][0-9a-zA-Z.-]*:/.test(path)) {
+                    base = null;
+                }
+            } else {
+                if (!/^[a-zA-Z][0-9a-zA-Z.-]*:/.test(path)) {
+                    throw new TypeError('Failed to construct "URL": Invalid URL');
+                }
+            }
+
+            if (base) {
+                base = new URL(base);
+                if (path.charAt(0) === '/' && path.charAt(1) === '/') {
+                    path = base.protocol + path;
+                } else if (path.charAt(0) === '/') {
+                    path = base.origin + path;
+                } else {
+                    var pathname = base.pathname;
+
+                    if (pathname.charAt(pathname.length - 1) === '/') {
+                        path = base.origin + pathname + path;
+                    } else {
+                        path = base.origin + pathname.replace(/\/[^/]+\/?$/, '') + '/' + path;
+                    }
+                }
+            }
+
+            var dotdot = /([^/])\/[^/]+\/\.\.\//;
+            var dot = /\/\.\//g;
+
+            path = path.replace(dot, '/');
+
+            while (path.match(dotdot)) {
+                path = path.replace(dotdot, '$1/');
+            }
+
+            var node = document.createElement('a');
+            node.href = path;
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
             try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
+                for (var _iterator = attrs[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var attr = _step.value;
+
+                    this[attr] = attr in node ? node[attr] : '';
                 }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
             } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
                 }
             }
-        }
 
-        this.searchParams = new URLSearchParams(this.search);
+            this.searchParams = new URLSearchParams(this.search);
+        }
     }
-};
+
+    createClass(URL, [{
+        key: 'toString',
+        value: function toString() {
+            return this.href;
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return this.href;
+        }
+    }]);
+    return URL;
+}();
 
 exports.URL = URL;
 exports.URLSearchParams = URLSearchParams;

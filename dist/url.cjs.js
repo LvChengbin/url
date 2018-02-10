@@ -246,7 +246,13 @@ class URL {
                 } else if( path.charAt( 0 ) === '/' ) {
                     path = base.origin + path;
                 } else {
-                    path = base.origin + base.pathname.replace( /\/[^/]+\/?$/, '' ) + '/' + path;
+                    const pathname = base.pathname;
+                    
+                    if( pathname.charAt( pathname.length - 1 ) === '/' ) {
+                        path = base.origin + pathname + path;
+                    } else {
+                        path = base.origin + pathname.replace( /\/[^/]+\/?$/, '' ) + '/' + path;
+                    }
                 }
             }
 
@@ -268,6 +274,13 @@ class URL {
             this.searchParams = new URLSearchParams( this.search ); 
         }
     }
+    toString() {
+        return this.href;
+    }
+    toJSON() {
+        return this.href;
+    }
+
 }
 
 exports.URL = URL;

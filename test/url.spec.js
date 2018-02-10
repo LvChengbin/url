@@ -53,6 +53,9 @@ describe( 'URL', () => {
             expect( new URL( './f', base ).href ).toEqual( 'http://192.168.0.1:3942/a/b/c/f' );
             expect( new URL( 'http://你好.中国' ).href ).toEqual( 'http://xn--6qq79v.xn--fiqs8s/'  );
             expect( new URL( 'http://www.google.com', 'http://www.youtube.com' ).href ).toEqual( 'http://www.google.com/' );
+            expect( new URL( 'index.js', 'http://localhost/packages/test' ).toString() ).toEqual( 'http://localhost/packages/index.js' );
+
+            expect( new URL( 'index.js', 'http://localhost/packages/test/' ).toString() ).toEqual( 'http://localhost/packages/test/index.js' );
         } );
 
         it( 'protocol', () => {
