@@ -10,12 +10,7 @@ const attrs = [
 export default class URL {
     constructor( path, base ) {
         if( window.URL ) {
-            let url;
-            if( typeof base === 'undefined' ) {
-                url = new window.URL( path );
-            } else {
-                url = new window.URL( path, base );
-            }
+            const url = new window.URL( path, base );
             if( !( 'searchParams' in url ) ) {
                 url.searchParams = new URLSearchParams( url.search ); 
             }

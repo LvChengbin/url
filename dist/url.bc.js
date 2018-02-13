@@ -439,12 +439,7 @@ var URL = function () {
         classCallCheck(this, URL);
 
         if (window.URL) {
-            var url = void 0;
-            if (typeof base === 'undefined') {
-                url = new window.URL(path);
-            } else {
-                url = new window.URL(path, base);
-            }
+            var url = new window.URL(path, base);
             if (!('searchParams' in url)) {
                 url.searchParams = new URLSearchParams(url.search);
             }
