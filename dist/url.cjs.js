@@ -4,21 +4,70 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var isString = str => typeof str === 'string' || str instanceof String;
 
+var isNumber = ( n, strict = false ) => {
+    if( ({}).toString.call( n ).toLowerCase() === '[object number]' ) {
+        return true;
+    }
+    if( strict ) return false;
+    return !isNaN( parseFloat( n ) ) && isFinite( n )  && !/\.$/.test( n );
+};
+
+var isInteger = ( n, strict = false ) => {
+
+    if( isNumber( n, true ) ) return n % 1 === 0;
+
+    if( strict ) return false;
+
+    if( isString( n ) ) {
+        if( n === '-0' ) return true;
+        return n.indexOf( '.' ) < 0 && String( parseInt( n ) ) === n;
+    }
+
+    return false;
+}
+
+var isIPv4 = ip => {
+    if( !isString( ip ) ) return false;
+    const pieces = ip.split( '.' );
+    if( pieces.length !== 4 ) return false;
+
+    for( const i of pieces ) {
+        if( !isInteger( i ) ) return false;
+        if( i < 0 || i > 255 ) return false;
+    }
+    return true;
+};
+
+/**
+ * <user>:<password> can only be supported with FTP scheme on IE9/10/11
+ */
+
 var isUrl = url => {
     if( !isString( url ) ) return false;
+
     if( !/^(https?|ftp):\/\//i.test( url ) ) return false;
     const a = document.createElement( 'a' );
     a.href = url;
-    return /^(https?|ftp):/i.test( a.protocol );
-};
 
-function supportIterator() {
+    /**
+     * In IE, sometimes a.protocol would be an unknown type
+     * Getting a.protocol will throw Error: Invalid argument in IE
+     */
     try {
-        return !!Symbol.iterator;
+        if( !isString( a.protocol ) ) return false;
     } catch( e ) {
         return false;
     }
-}
+
+    if( !/^(https?|ftp):/i.test( a.protocol ) ) return false;
+
+    /**
+     * In IE, invalid IP address could be a valid hostname
+     */
+    if( /^(\d+\.){3}\d+$/.test( a.hostname ) && !isIPv4( a.hostname ) ) return false;
+
+    return true;
+};
 
 const decode = str => decodeURIComponent( String( str ).replace( /\+/g, ' ' ) );
 
@@ -128,20 +177,8 @@ class URLSearchParams {
         for( let item of this.dict ) {
             dict.push( [ item[ 0 ], item[ 1 ] ] );
         }
-
-        return !supportIterator() ? dict : ( {
-            [Symbol.iterator]() {
-                return {
-                    next() {
-                        const value = dict.shift();
-                        return {
-                            done : value === undefined,
-                            value 
-                        };
-                    }
-                };
-            }
-        } );
+        
+        return dict;
     }
 
     keys() {
@@ -150,19 +187,7 @@ class URLSearchParams {
            keys.push( item[ 0 ] );
         }
 
-        return !supportIterator() ? keys : ( {
-            [Symbol.iterator]() {
-                return {
-                    next() {
-                        const value = keys.shift();
-                        return {
-                            done : value === undefined,
-                            value
-                        };
-                    }
-                };
-            }
-        } );
+        return keys;
     }
 
     values() {
@@ -171,19 +196,7 @@ class URLSearchParams {
            values.push( item[ 1 ] );
         }
 
-        return !supportIterator() ? values : ( {
-            [Symbol.iterator]() {
-                return {
-                    next() {
-                        const value = values.shift();
-                        return {
-                            done : value === undefined,
-                            value
-                        };
-                    }
-                };
-            }
-        } );
+        return values;
     }
 
     toString() {
@@ -265,6 +278,20 @@ class URL {
 
             for( const attr of attrs ) {
                 this[ attr ] = attr in node ? node[ attr ] : '';
+            }
+
+            /**
+             * set origin for IE
+             */
+            if( !this.origin ) {
+                this.origin = this.protocol + '//' + this.host;
+            }
+
+            /**
+             * add a slash before the path for IE
+             */
+            if( this.pathname && this.pathname.charAt( 0 ) !== '/' ) {
+                this.pathname = '/' + this.pathname;
             }
             this.searchParams = new URLSearchParams( this.search ); 
         }

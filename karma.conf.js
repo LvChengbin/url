@@ -2,10 +2,27 @@
 // Generated on Tue Jul 11 2017 12:49:06 GMT+0800 (CST)
 
 process.env.CHROME_BIN = require( 'puppeteer' ).executablePath();
-
+const  argv = require( 'optimist' ).argv;
 const resolve = require( 'rollup-plugin-node-resolve' );
+const buble = require( 'rollup-plugin-buble' );
 
-//const babel = require( 'rollup-plugin-babel' );
+const rollupPlugins = [
+    resolve( {
+        module : true,
+        jsnext : true
+    } ),
+];
+
+if( argv.es5 ) {
+    rollupPlugins.push(
+        buble( {
+            transforms : {
+                arrow : true,
+                dangerousForOf : true
+            }
+        } )
+    );
+}
 
 module.exports = function(config) {
     config.set({
@@ -18,15 +35,39 @@ module.exports = function(config) {
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
         // Most versions of PhantomJS do not suppport ES5 and ES6, so add es6-shim here to make sure all
         // test cases could be executed in PhantomJS
-        frameworks: [ 'jasmine', 'es6-shim' ],
+        frameworks: [ 'jasmine' ],
 
 
         // list of files / patterns to load in the browser
-        files : [
-            'test/main.js',
-            { pattern : 'src/**/*.js', included : false, watched : false },
-            { pattern : 'test/**/*.spec.js', included : true, watched : false }
-        ],
+        files : ( () => {
+            const files = [
+                { pattern : 'src/**/*.js', included : false, watched : false }
+            ];
+
+            if( argv.file || argv.files ) {
+                argv.file && files.push( {
+                    pattern : argv.file.trim(),
+                    included : true,
+                    watched : false
+                } );
+
+                argv.files && argv.files.split( ',' ).forEach( file => {
+                    files.push( {
+                        pattern : file.trim(),
+                        included : true,
+                        watched : false
+                    } );
+                } );
+            } else {
+                files.push( {
+                    pattern : 'test/**/*.spec.js',
+                    included : true,
+                    watched : false
+                } );
+            }
+
+            return files;
+        } )(),
 
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -36,12 +77,7 @@ module.exports = function(config) {
 
         // 
         rollupPreprocessor : {
-            plugins : [
-                resolve( {
-                    module : true,
-                    jsnext : true
-                } )
-            ],
+            plugins : rollupPlugins,
             output : {
                 format : 'iife'
             }

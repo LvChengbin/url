@@ -72,6 +72,20 @@ export default class URL {
             for( const attr of attrs ) {
                 this[ attr ] = attr in node ? node[ attr ] : '';
             }
+
+            /**
+             * set origin for IE
+             */
+            if( !this.origin ) {
+                this.origin = this.protocol + '//' + this.host;
+            }
+
+            /**
+             * add a slash before the path for IE
+             */
+            if( this.pathname && this.pathname.charAt( 0 ) !== '/' ) {
+                this.pathname = '/' + this.pathname;
+            }
             this.searchParams = new URLSearchParams( this.search ); 
         }
     }

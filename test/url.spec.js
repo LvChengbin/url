@@ -8,7 +8,7 @@ describe( 'URL', () => {
 
     describe( 'href', () => {
         const base = 'http://192.168.0.1:3942/a/b/c/d?x=1&y=2#z';
-        const host = 'http://localhost:7997';
+        const host = location.protocol + '//' + location.host;
         const href = location.href;
 
         it( 'Invalid URL', () => {
@@ -51,7 +51,7 @@ describe( 'URL', () => {
             expect( new URL( '../e', base ).href ).toEqual( 'http://192.168.0.1:3942/a/b/e' );
             expect( new URL( '../../e', base ).href ).toEqual( 'http://192.168.0.1:3942/a/e' );
             expect( new URL( './f', base ).href ).toEqual( 'http://192.168.0.1:3942/a/b/c/f' );
-            expect( new URL( 'http://你好.中国' ).href ).toEqual( 'http://xn--6qq79v.xn--fiqs8s/'  );
+            expect( [ 'http://xn--6qq79v.xn--fiqs8s/', 'http://你好.中国/' ].indexOf( new URL( 'http://你好.中国' ).href ) > -1 ).toBeTruthy();
             expect( new URL( 'http://www.google.com', 'http://www.youtube.com' ).href ).toEqual( 'http://www.google.com/' );
             expect( new URL( 'index.js', 'http://localhost/packages/test' ).toString() ).toEqual( 'http://localhost/packages/index.js' );
 

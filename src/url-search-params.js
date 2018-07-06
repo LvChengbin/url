@@ -1,11 +1,3 @@
-function supportIterator() {
-    try {
-        return !!Symbol.iterator;
-    } catch( e ) {
-        return false;
-    }
-}
-
 const decode = str => decodeURIComponent( String( str ).replace( /\+/g, ' ' ) );
 
 export default class URLSearchParams {
@@ -114,20 +106,8 @@ export default class URLSearchParams {
         for( let item of this.dict ) {
             dict.push( [ item[ 0 ], item[ 1 ] ] );
         }
-
-        return !supportIterator() ? dict : ( {
-            [Symbol.iterator]() {
-                return {
-                    next() {
-                        const value = dict.shift();
-                        return {
-                            done : value === undefined,
-                            value 
-                        };
-                    }
-                };
-            }
-        } );
+        
+        return dict;
     }
 
     keys() {
@@ -136,19 +116,7 @@ export default class URLSearchParams {
            keys.push( item[ 0 ] );
         }
 
-        return !supportIterator() ? keys : ( {
-            [Symbol.iterator]() {
-                return {
-                    next() {
-                        const value = keys.shift();
-                        return {
-                            done : value === undefined,
-                            value
-                        };
-                    }
-                };
-            }
-        } );
+        return keys;
     }
 
     values() {
@@ -157,19 +125,7 @@ export default class URLSearchParams {
            values.push( item[ 1 ] );
         }
 
-        return !supportIterator() ? values : ( {
-            [Symbol.iterator]() {
-                return {
-                    next() {
-                        const value = values.shift();
-                        return {
-                            done : value === undefined,
-                            value
-                        };
-                    }
-                };
-            }
-        } );
+        return values;
     }
 
     toString() {

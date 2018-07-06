@@ -1,5 +1,5 @@
-import babel from 'rollup-plugin-babel';
 import resolve from 'rollup-plugin-node-resolve';
+import buble from 'rollup-plugin-buble';
 
 export default [ {
     input : 'src/index.js',
@@ -20,7 +20,12 @@ export default [ {
             module : true,
             jsnext : true
         } ),
-        babel()
+        buble( {
+            transforms : {
+                arrow : true,
+                dangerousForOf : true
+            }
+        } )
     ],
     output : [
         { file : 'dist/url.bc.js', format : 'umd', name : 'URL' }
