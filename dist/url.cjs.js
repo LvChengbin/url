@@ -73,39 +73,35 @@ const decode = str => decodeURIComponent( String( str ).replace( /\+/g, ' ' ) );
 
 class URLSearchParams {
     constructor( init ) {
-        if( window.URLSearchParams ) {
-            return new window.URLSearchParams( init );
-        } else {
-            this.dict = [];
+        this.dict = [];
 
-            if( !init ) return;
+        if( !init ) return;
 
-            if( URLSearchParams.prototype.isPrototypeOf( init ) ) {
-                return new URLSearchParams( init.toString() );
+        if( URLSearchParams.prototype.isPrototypeOf( init ) ) {
+            return new URLSearchParams( init.toString() );
+        }
+
+        if( Array.isArray( init ) ) {
+            throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
+        }
+
+        if( typeof init === 'string' ) {
+            if( init.charAt(0) === '?' ) {
+                init = init.slice( 1 );
             }
-
-            if( Array.isArray( init ) ) {
-                throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
+            const pairs = init.split( /&+/ );
+            for( const item of pairs ) {
+                const index = item.indexOf( '=' );
+                this.append(
+                    index > -1 ? item.slice( 0, index ) : item,
+                    index > -1 ? item.slice( index + 1 ) : ''
+                );
             }
+            return;
+        }
 
-            if( typeof init === 'string' ) {
-                if( init.charAt(0) === '?' ) {
-                    init = init.slice( 1 );
-                }
-                const pairs = init.split( /&+/ );
-                for( const item of pairs ) {
-                    const index = item.indexOf( '=' );
-                    this.append(
-                        index > -1 ? item.slice( 0, index ) : item,
-                        index > -1 ? item.slice( index + 1 ) : ''
-                    );
-                }
-                return;
-            }
-
-            for( let attr in init ) {
-                this.append( attr, init[ attr ] );
-            }
+        for( let attr in init ) {
+            this.append( attr, init[ attr ] );
         }
     }
     append( name, value ) {

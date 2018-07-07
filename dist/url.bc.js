@@ -82,41 +82,37 @@
     var URLSearchParams = function URLSearchParams( init ) {
         var this$1 = this;
 
-        if( window.URLSearchParams ) {
-            return new window.URLSearchParams( init );
-        } else {
-            this.dict = [];
+        this.dict = [];
 
-            if( !init ) { return; }
+        if( !init ) { return; }
 
-            if( URLSearchParams.prototype.isPrototypeOf( init ) ) {
-                return new URLSearchParams( init.toString() );
+        if( URLSearchParams.prototype.isPrototypeOf( init ) ) {
+            return new URLSearchParams( init.toString() );
+        }
+
+        if( Array.isArray( init ) ) {
+            throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
+        }
+
+        if( typeof init === 'string' ) {
+            if( init.charAt(0) === '?' ) {
+                init = init.slice( 1 );
             }
+            var pairs = init.split( /&+/ );
+            for( var i = 0, list = pairs; i < list.length; i += 1 ) {
+                var item = list[i];
 
-            if( Array.isArray( init ) ) {
-                throw new TypeError( 'Failed to construct "URLSearchParams": The provided value cannot be converted to a sequence.' );
+                var index = item.indexOf( '=' );
+                this$1.append(
+                    index > -1 ? item.slice( 0, index ) : item,
+                    index > -1 ? item.slice( index + 1 ) : ''
+                );
             }
+            return;
+        }
 
-            if( typeof init === 'string' ) {
-                if( init.charAt(0) === '?' ) {
-                    init = init.slice( 1 );
-                }
-                var pairs = init.split( /&+/ );
-                for( var i = 0, list = pairs; i < list.length; i += 1 ) {
-                    var item = list[i];
-
-                    var index = item.indexOf( '=' );
-                    this$1.append(
-                        index > -1 ? item.slice( 0, index ) : item,
-                        index > -1 ? item.slice( index + 1 ) : ''
-                    );
-                }
-                return;
-            }
-
-            for( var attr in init ) {
-                this$1.append( attr, init[ attr ] );
-            }
+        for( var attr in init ) {
+            this$1.append( attr, init[ attr ] );
         }
     };
     URLSearchParams.prototype.append = function append ( name, value ) {
