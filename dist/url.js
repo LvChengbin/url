@@ -1,7 +1,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
     typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.URL = {})));
+    (factory((global.JURL = {})));
 }(this, (function (exports) { 'use strict';
 
     var isString = str => typeof str === 'string' || str instanceof String;
@@ -210,6 +210,8 @@
         }
     }
 
+    const g = typeof global === 'undefined' ? window : global;
+
     const attrs = [
         'href', 'origin',
         'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
@@ -218,8 +220,8 @@
 
     class URL {
         constructor( path, base ) {
-            if( window.URL ) {
-                const url = new window.URL( path, base );
+            if( g.URL && new g.URL( 'http://a.com' ).protocol ) {
+                const url = new g.URL( path, base );
                 if( !( 'searchParams' in url ) ) {
                     url.searchParams = new URLSearchParams( url.search ); 
                 }

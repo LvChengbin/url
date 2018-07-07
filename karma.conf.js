@@ -2,9 +2,11 @@
 // Generated on Tue Jul 11 2017 12:49:06 GMT+0800 (CST)
 
 process.env.CHROME_BIN = require( 'puppeteer' ).executablePath();
+const path = require( 'path' );
 const  argv = require( 'optimist' ).argv;
 const resolve = require( 'rollup-plugin-node-resolve' );
 const buble = require( 'rollup-plugin-buble' );
+const serve = require( 'koa-static' );
 
 const rollupPlugins = [
     resolve( {
@@ -17,7 +19,6 @@ if( argv.es5 ) {
     rollupPlugins.push(
         buble( {
             transforms : {
-                arrow : true,
                 dangerousForOf : true
             }
         } )
@@ -72,7 +73,7 @@ module.exports = function(config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            'test/**/*.js' : [ 'rollup' ],
+            'test/**/*.js' : [ 'rollup', 'yolk' ],
         },
 
         // 
@@ -80,6 +81,14 @@ module.exports = function(config) {
             plugins : rollupPlugins,
             output : {
                 format : 'iife'
+            }
+        },
+
+        yolk : {
+            debugging : false,
+            routers( app ) {
+                app.router.get( '/demo/(.*)', serve( path.join( __dirname, 'test' ) ) );
+                app.router.get( '/dist/(.*)', serve( path.join( __dirname ) ) );
             }
         },
 

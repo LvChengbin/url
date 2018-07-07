@@ -1,7 +1,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
     typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.URL = {})));
+    (factory((global.JURL = {})));
 }(this, (function (exports) { 'use strict';
 
     function isString (str) { return typeof str === 'string' || str instanceof String; }
@@ -248,6 +248,8 @@
         return pairs.join( '&' );
     };
 
+    var g = typeof global === 'undefined' ? window : global;
+
     var attrs = [
         'href', 'origin',
         'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
@@ -257,8 +259,8 @@
     var URL = function URL( path, base ) {
         var this$1 = this;
 
-        if( window.URL ) {
-            var url = new window.URL( path, base );
+        if( g.URL && new g.URL( 'http://a.com' ).protocol ) {
+            var url = new g.URL( path, base );
             if( !( 'searchParams' in url ) ) {
                 url.searchParams = new URLSearchParams( url.search ); 
             }

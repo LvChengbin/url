@@ -11,7 +11,7 @@ export default [ {
     ],
     output : [
         { file : 'dist/url.cjs.js', format : 'cjs' },
-        { file : 'dist/url.js', format : 'umd', name : 'URL' }
+        { file : 'dist/url.js', format : 'umd', name : 'JURL' }
     ]
 }, {
     input : 'src/index.js',
@@ -28,6 +28,6 @@ export default [ {
         } )
     ],
     output : [
-        { file : 'dist/url.bc.js', format : 'umd', name : 'URL' }
+        { file : 'dist/url.bc.js', format : 'umd', name : 'JURL' }
     ]
 } ];

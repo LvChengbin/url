@@ -208,6 +208,8 @@ class URLSearchParams {
     }
 }
 
+const g = typeof global === 'undefined' ? window : global;
+
 const attrs = [
     'href', 'origin',
     'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
@@ -216,8 +218,8 @@ const attrs = [
 
 class URL {
     constructor( path, base ) {
-        if( window.URL ) {
-            const url = new window.URL( path, base );
+        if( g.URL && new g.URL( 'http://a.com' ).protocol ) {
+            const url = new g.URL( path, base );
             if( !( 'searchParams' in url ) ) {
                 url.searchParams = new URLSearchParams( url.search ); 
             }
