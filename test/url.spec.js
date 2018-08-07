@@ -4,7 +4,6 @@ import URLSearchParams from '../src/url-search-params';
 describe( 'URL', () => {
 
     // remove the native URL API for testing
-    window.URL = null;
 
     describe( 'href', () => {
         const base = 'http://192.168.0.1:3942/a/b/c/d?x=1&y=2#z';
@@ -12,18 +11,16 @@ describe( 'URL', () => {
         const href = location.href;
 
         it( 'Invalid URL', () => {
-            const message = 'Failed to construct "URL": Invalid URL';
-            expect( () => { new URL( 'x' ) } ).toThrowError( TypeError, message );
-            expect( () => { new URL( ':' ) } ).toThrowError( TypeError, message );
-            expect( () => { new URL( ':x' ) } ).toThrowError( TypeError, message );
-            expect( () => { new URL( '~~:x' ) } ).toThrowError( TypeError, message );
+            expect( () => { new URL( 'x' ) } ).toThrowError( TypeError );
+            expect( () => { new URL( ':' ) } ).toThrowError( TypeError );
+            expect( () => { new URL( ':x' ) } ).toThrowError( TypeError );
+            expect( () => { new URL( '~~:x' ) } ).toThrowError( TypeError );
         } );
 
         it( 'Invalid base URL', () => {
-            const message = 'Failed to construct "URL": Invalid base URL';
-            expect( () => { new URL( 'x', 'x' ) } ).toThrowError( TypeError, message );
-            expect( () => { new URL( 'x', 'httpp://x' ) } ).toThrowError( TypeError, message );
-            expect( () => { new URL( 'x', 'http://333.0.0.0' ) } ).toThrowError( TypeError, message );
+            expect( () => { new URL( 'x', 'x' ) } ).toThrowError( TypeError );
+            expect( () => { new URL( 'x', 'httpp://x' ) } ).toThrowError( TypeError );
+            expect( () => { new URL( 'x', 'http://333.0.0.0' ) } ).toThrowError( TypeError );
         } );
 
         it( 'Create with URL instance', () => {
@@ -99,19 +96,14 @@ describe( 'URL', () => {
         } );
 
         it( 'searchParams', () => {
-            if( window.URLSearchParams ) {
-                expect( new URL( base ).searchParams instanceof window.URLSearchParams ).toBeTruthy();
-            } else {
-                expect( new URL( base ).searchParams instanceof URLSearchParams ).toBeTruthy();
-            }
+            expect( new URL( base ).searchParams instanceof URLSearchParams ).toBeTruthy();
+            expect( new URL( base ).searchParams.get( 'x' ) ).toEqual( '1' );
         } );
     } );
 
 } );
 
 describe( 'URLSearchParams', () => {
-
-    window.URLSearchParams = null;
 
     it( 'toString', () => {
         expect( new URLSearchParams( { x : 1 } ).toString() ).toEqual( 'x=1' );
@@ -230,6 +222,11 @@ describe( 'URLSearchParams', () => {
         searchParams.set( 'x', 4 );
         expect( searchParams.get( 'x' ) ).toEqual( '4' );
         expect( searchParams.getAll( 'x' ) ).toEqual( [ '4' ] );
+
+        searchParams.set( 'y', 100 );
+        expect( searchParams.get( 'y' ) ).toEqual( '100' );
+        expect( searchParams.getAll( 'y' ) ).toEqual( [ '100' ] );
+        expect( searchParams.toString( 'y' ) ).toEqual( 'x=4&y=100' );
     } );
 
     it( 'sort', () => {

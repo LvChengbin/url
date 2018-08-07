@@ -84,6 +84,9 @@ export default class URLSearchParams {
                 }
             }
         }
+        if( !set ) {
+            this.dict.push( [ name, String( value ) ] );
+        }
     }
     sort() {
         this.dict.sort( ( a, b ) => {
