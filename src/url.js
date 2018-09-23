@@ -1,5 +1,14 @@
-import isUrl from '@lvchengbin/is/src/url';
-import URLSearchParams from './url-search-params';
+import parse from './parse';
+import resolve from './resolve';
+import URLSearchParams from './search-params';
+
+const validBaseProtocols = {
+    'http:' : true,
+    'https:' : true,
+    'file:' : true,
+    'ftp:' : true,
+    'gopher' : true
+};
 
 const attrs = [
     'href', 'origin',
@@ -8,76 +17,39 @@ const attrs = [
 ];
 
 export default class URL {
-    constructor( path, base ) {
-        if( URL.prototype.isPrototypeOf( path ) ) {
-            return new URL( path.href );
+    constructor( url, base ) {
+        if( URL.prototype.isPrototypeOf( url ) ) {
+            return new URL( url.href );
         }
 
         if( URL.prototype.isPrototypeOf( base ) ) {
-            return new URL( path, base.href );
+            return new URL( url, base.href );
         }
 
-        path = String( path );
+        url = String( url );
 
         if( base !== undefined ) {
-            if( !isUrl( base ) ) {
+            const parsed = parse( base );
+            if( !parsed || !validBaseProtocols[ parsed.protocol ] ) {
                 throw new TypeError( 'Failed to construct "URL": Invalid base URL' );
             }
-            if( /^[a-zA-Z][0-9a-zA-Z.-]*:/.test( path ) ) {
-                base = null;
-            }
+            if( parse( url ) ) base = null;
         } else {
-            if( !/^[a-zA-Z][0-9a-zA-Z.-]*:/.test( path ) ) {
+            if( !parse( url ) ) {
                 throw new TypeError( 'Failed to construct "URL": Invalid URL' );
             }
         }
 
         if( base ) {
-            base = new URL( base );
-            if( path.charAt( 0 ) === '/' && path.charAt( 1 ) === '/' ) {
-                path = base.protocol + path;
-            } else if( path.charAt( 0 ) === '/' ) {
-                path = base.origin + path;
-            } else {
-                const pathname = base.pathname;
-                
-                if( pathname.charAt( pathname.length - 1 ) === '/' ) {
-                    path = base.origin + pathname + path;
-                } else {
-                    path = base.origin + pathname.replace( /\/[^/]+\/?$/, '' ) + '/' + path;
-                }
-            }
+            url = resolve( base, url );
         }
 
-        const dotdot = /([^/])\/[^/]+\/\.\.\//;
-        const dot = /\/\.\//g;
+        const parsed = parse( url );
 
-        path = path.replace( dot, '/' );
-
-        while( path.match( dotdot ) ) {
-            path = path.replace( dotdot, '$1/' );
+        for( const item of attrs ) {
+            this[ item ] = parsed[ item ];
         }
 
-        const node = document.createElement( 'a' );
-        node.href = path;
-
-        for( const attr of attrs ) {
-            this[ attr ] = attr in node ? node[ attr ] : '';
-        }
-
-        /**
-         * set origin for IE
-         */
-        if( !this.origin ) {
-            this.origin = this.protocol + '//' + this.host;
-        }
-
-        /**
-         * add a slash before the path for IE
-         */
-        if( this.pathname && this.pathname.charAt( 0 ) !== '/' ) {
-            this.pathname = '/' + this.pathname;
-        }
         this.searchParams = new URLSearchParams( this.search ); 
     }
     toString() {
@@ -86,5 +58,4 @@ export default class URL {
     toJSON() {
         return this.href;
     }
-
 }

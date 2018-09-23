@@ -1,5 +1,5 @@
 import URL from '../src/url';
-import URLSearchParams from '../src/url-search-params';
+import URLSearchParams from '../src/search-params';
 
 describe( 'URL', () => {
 
