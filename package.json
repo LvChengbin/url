@@ -1,6 +1,6 @@
 {
     "name": "@lvchengbin/url",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Polyfill of URL and URLSearchParams for browsers.",
     "keywords": [
         "URL",
@@ -13,23 +13,22 @@
     },
     "devDependencies": {
         "buble": "^0.19.3",
-        "eslint": "^4.19.1",
-        "jasmine-core": "^2.99.1",
-        "karma": "^2.0.2",
+        "eslint": "^5.9.0",
+        "jasmine-core": "^3.3.0",
+        "karma": "^3.1.1",
         "karma-chrome-launcher": "^2.2.0",
-        "karma-jasmine": "^1.1.2",
+        "karma-jasmine": "^2.0.1",
         "karma-rollup-preprocessor": "^6.0.0",
-        "karma-server": "0.0.0",
+        "karma-server": "0.0.5",
         "optimist": "^0.6.1",
         "pre-commit": "^1.2.2",
-        "puppeteer": "^0.13.0",
-        "rollup": "^0.58.2",
+        "rollup": "^0.67.3",
         "rollup-plugin-buble": "^0.19.2",
         "rollup-plugin-node-resolve": "^3.3.0"
     },
     "scripts": {
         "build": "rollup -c",
-        "test": "karma start",
+        "test": "karma start --single-run",
         "test-es5": "karma start --es5=true",
         "prepublish": "npm run build",
         "lint": "eslint ./ --cache --ignore-path .eslintignore",
@@ -44,6 +43,7 @@
     "author": "LvChengbin",
     "license": "MIT",
     "dependencies": {
-        "@lvchengbin/is": "0.0.23"
+        "@lvchengbin/is": "0.0.24",
+        "puppeteer": "^1.10.0"
     }
 }

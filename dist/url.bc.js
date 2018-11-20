@@ -395,8 +395,6 @@
     var decode = function (str) { return decodeURIComponent( String( str ).replace( /\+/g, ' ' ) ); };
 
     var URLSearchParams = function URLSearchParams( init ) {
-        var this$1 = this;
-
         this.dict = [];
 
         if( !init ) { return; }
@@ -418,7 +416,7 @@
                 var item = list[i];
 
                 var index = item.indexOf( '=' );
-                this$1.append(
+                this.append(
                     index > -1 ? item.slice( 0, index ) : item,
                     index > -1 ? item.slice( index + 1 ) : ''
                 );
@@ -427,7 +425,7 @@
         }
 
         for( var attr in init ) {
-            this$1.append( attr, init[ attr ] );
+            this.append( attr, init[ attr ] );
         }
     };
     URLSearchParams.prototype.append = function append ( name, value ) {
@@ -443,9 +441,7 @@
         }
     };
     URLSearchParams.prototype.get = function get ( name ) {
-            var this$1 = this;
-
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
             var item = list[i];
 
                 if( item[ 0 ] == name ) {
@@ -455,10 +451,8 @@
         return null;
     };
     URLSearchParams.prototype.getAll = function getAll ( name ) {
-            var this$1 = this;
-
         var res = [];
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
             var item = list[i];
 
                 if( item[ 0 ] == name ) {
@@ -468,9 +462,7 @@
         return res;
     };
     URLSearchParams.prototype.has = function has ( name ) {
-            var this$1 = this;
-
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
             var item = list[i];
 
                 if( item[ 0 ] == name ) {
@@ -480,14 +472,12 @@
         return false;
     };
     URLSearchParams.prototype.set = function set ( name, value ) {
-            var this$1 = this;
-
         var set = false;
         for( var i = 0, l = this.dict.length; i < l; i += 1 ) {
-            var item  = this$1.dict[ i ];
+            var item  = this.dict[ i ];
             if( item[ 0 ] == name ) {
                 if( set ) {
-                    this$1.dict.splice( i, 1 );
+                    this.dict.splice( i, 1 );
                     i--; l--;
                 } else {
                     item[ 1 ] = String( value );
@@ -499,23 +489,53 @@
             this.dict.push( [ name, String( value ) ] );
         }
     };
+
+    /**
+     * Array.prototype.sort is not stable.
+     * http://ecma-international.org/ecma-262/6.0/#sec-array.prototype.sort
+     *
+     * the URLSearchParams.sort should be a stable sorting algorithm method.
+     * 
+     * To use inseration sort while the length of the array little than 100, otherwise, using the merge sort instead.
+     * It was identified by nodejs and v8;
+     * https://github.com/nodejs/node/blob/master/lib/internal/url.js
+     * https://github.com/v8/v8/blob/master/src/js/array.js
+     */
     URLSearchParams.prototype.sort = function sort () {
-        this.dict.sort( function ( a, b ) {
-            var nameA = a[ 0 ].toLowerCase();
-            var nameB = b[ 0 ].toLowerCase();
-            if (nameA < nameB) { return -1; }
-            if (nameA > nameB) { return 1; }
-            return 0;
-        } );
+        var a = this.dict;
+        var n = a.length;
+
+        if( n <= 2 ) ; else if( n < 100 ) {
+            // insertion sort
+            for( var i = 1; i < n; i += 1 ) {
+                var item = a[ i ];
+                var j = i - 1;
+                while( j >= 0 && item[ 0 ] < a[ j ][ 0 ] ) {
+                    a[ j + 1 ] = a[ j ];
+                    j -= 1;
+                }
+                a[ j + 1 ] = item;
+            }
+        } else {
+            /**
+             * Bottom-up iterative merge sort
+             */
+            for( var c = 1; c <= n - 1; c = 2 * c ) {
+                for( var l = 0; l < n - 1; l += 2 * c ) {
+                    var m = l + c - 1;
+                    var r = Math.min( l + 2 * c - 1, n - 1 );
+                    if( m > r ) { continue; }
+                    merge( a, l, m, r );
+                }
+            }
+        }
     };
 
     URLSearchParams.prototype.entries = function entries () {
-            var this$1 = this;
-
 
         var dict = [];
 
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
             var item = list[i];
 
                 dict.push( [ item[ 0 ], item[ 1 ] ] );
@@ -525,10 +545,8 @@
     };
 
     URLSearchParams.prototype.keys = function keys () {
-            var this$1 = this;
-
         var keys = [];
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
            var item = list[i];
 
                 keys.push( item[ 0 ] );
@@ -538,10 +556,8 @@
     };
 
     URLSearchParams.prototype.values = function values () {
-            var this$1 = this;
-
         var values = [];
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
            var item = list[i];
 
                 values.push( item[ 1 ] );
@@ -551,16 +567,46 @@
     };
 
     URLSearchParams.prototype.toString = function toString () {
-            var this$1 = this;
-
         var pairs = [];
-        for( var i = 0, list = this$1.dict; i < list.length; i += 1 ) {
+        for( var i = 0, list = this.dict; i < list.length; i += 1 ) {
             var item = list[i];
 
                 pairs.push( encodeURIComponent( item[ 0 ] ) + '=' + encodeURIComponent( item[ 1 ] ) );
         }
         return pairs.join( '&' );
     };
+
+    // function for merge sort
+    function merge( a, l, m, r ) {
+        var n1 = m - l + 1;
+        var n2 = r - m;
+        var L = a.slice( l, m + 1 );
+        var R = a.slice( m + 1, 1 + r );
+
+        var i = 0, j = 0, k = l;
+        while( i < n1 && j < n2 ) {
+            if( L[ i ][ 0 ] <= R[ j ][ 0 ] ) {
+                a[ k ] = L[ i ];
+                i++;
+            } else {
+                a[ k ] = R[ j ];
+                j++;
+            }
+            k++;
+        }
+
+        while( i < n1 ) {
+            a[ k ] = L[ i ];
+            i++;
+            k++;
+        }
+
+        while( j < n2 ) {
+            a[ k ] = R[ j ];
+            j++;
+            k++;
+        }
+    }
 
     var validBaseProtocols = {
         'http:' : true,
@@ -577,8 +623,6 @@
     ];
 
     var URL = function URL( url, base ) {
-        var this$1 = this;
-
         if( URL.prototype.isPrototypeOf( url ) ) {
             return new URL( url.href );
         }
@@ -610,7 +654,7 @@
         for( var i = 0, list = attrs; i < list.length; i += 1 ) {
             var item = list[i];
 
-            this$1[ item ] = parsed[ item ];
+            this[ item ] = parsed[ item ];
         }
 
         this.searchParams = new URLSearchParams( this.search ); 

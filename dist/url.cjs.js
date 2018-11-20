@@ -24,7 +24,7 @@ var isInteger = ( n, strict = false ) => {
     }
 
     return false;
-}
+};
 
 /**
  * BNF of IPv4 address
@@ -467,14 +467,46 @@ class URLSearchParams {
             this.dict.push( [ name, String( value ) ] );
         }
     }
+
+    /**
+     * Array.prototype.sort is not stable.
+     * http://ecma-international.org/ecma-262/6.0/#sec-array.prototype.sort
+     *
+     * the URLSearchParams.sort should be a stable sorting algorithm method.
+     * 
+     * To use inseration sort while the length of the array little than 100, otherwise, using the merge sort instead.
+     * It was identified by nodejs and v8;
+     * https://github.com/nodejs/node/blob/master/lib/internal/url.js
+     * https://github.com/v8/v8/blob/master/src/js/array.js
+     */
     sort() {
-        this.dict.sort( ( a, b ) => {
-            const nameA = a[ 0 ].toLowerCase();
-            const nameB = b[ 0 ].toLowerCase();
-            if (nameA < nameB) return -1;
-            if (nameA > nameB) return 1;
-            return 0;
-        } );
+        const a = this.dict;
+        const n = a.length;
+
+        if( n <= 2 ) ; else if( n < 100 ) {
+            // insertion sort
+            for( let i = 1; i < n; i += 1 ) {
+                const item = a[ i ];
+                let j = i - 1;
+                while( j >= 0 && item[ 0 ] < a[ j ][ 0 ] ) {
+                    a[ j + 1 ] = a[ j ];
+                    j -= 1;
+                }
+                a[ j + 1 ] = item;
+            }
+        } else {
+            /**
+             * Bottom-up iterative merge sort
+             */
+            for( let c = 1; c <= n - 1; c = 2 * c ) {
+                for( let l = 0; l < n - 1; l += 2 * c ) {
+                    const m = l + c - 1;
+                    const r = Math.min( l + 2 * c - 1, n - 1 );
+                    if( m > r ) continue;
+                    merge( a, l, m, r );
+                }
+            }
+        }
     }
 
     entries() {
@@ -512,6 +544,38 @@ class URLSearchParams {
             pairs.push( encodeURIComponent( item[ 0 ] ) + '=' + encodeURIComponent( item[ 1 ] ) );
         }
         return pairs.join( '&' );
+    }
+}
+
+// function for merge sort
+function merge( a, l, m, r ) {
+    const n1 = m - l + 1;
+    const n2 = r - m;
+    const L = a.slice( l, m + 1 );
+    const R = a.slice( m + 1, 1 + r );
+
+    let i = 0, j = 0, k = l;
+    while( i < n1 && j < n2 ) {
+        if( L[ i ][ 0 ] <= R[ j ][ 0 ] ) {
+            a[ k ] = L[ i ];
+            i++;
+        } else {
+            a[ k ] = R[ j ];
+            j++;
+        }
+        k++;
+    }
+
+    while( i < n1 ) {
+        a[ k ] = L[ i ];
+        i++;
+        k++;
+    }
+
+    while( j < n2 ) {
+        a[ k ] = R[ j ];
+        j++;
+        k++;
     }
 }
 

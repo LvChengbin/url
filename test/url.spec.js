@@ -242,6 +242,51 @@ describe( 'URLSearchParams', () => {
         expect( searchParams.toString() ).toEqual( 'x=3&x=0&y=2&z=1' );
     } );
 
+    it( 'stable sort for length < 100', () => {
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        const values = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$';
+        const arr = shuffle( values.split( '' ) );
+        const searchParams = new URLSearchParams(); 
+        for( const item of arr ) {
+            searchParams.append( 'x', item );
+        }
+        const str = searchParams.toString();
+        searchParams.sort();
+        searchParams.sort();
+        searchParams.sort();
+        searchParams.sort();
+        expect( searchParams.toString() ).toEqual( str );
+    } );
+
+    it( 'the sort method should be stable with length >= 100', () => {
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        const values = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$';
+        const arr = shuffle( Array( 1000 ).join( values ).split( '' ) );
+        const searchParams = new URLSearchParams(); 
+        for( const item of arr ) {
+            searchParams.append( 'x', item );
+        }
+        const str = searchParams.toString();
+        searchParams.sort();
+        searchParams.sort();
+        searchParams.sort();
+        searchParams.sort();
+        expect( searchParams.toString() ).toEqual( str );
+    } );
+
+
     it( 'values', () => {
         const searchParams = new URLSearchParams( {
             z : 1,
