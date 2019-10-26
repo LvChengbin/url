@@ -5,8 +5,7 @@ export default [ {
     input : 'src/index.js',
     plugins : [
         resolve( {
-            module : true,
-            jsnext : true
+            mainFields : [ 'module' ]
         } )
     ],
     output : [
@@ -17,8 +16,7 @@ export default [ {
     input : 'src/index.js',
     plugins : [
         resolve( {
-            module : true,
-            jsnext : true
+            mainFields : [ 'module' ]
         } ),
         buble( {
             transforms : {

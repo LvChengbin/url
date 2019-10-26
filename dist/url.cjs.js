@@ -37,7 +37,7 @@ var isInteger = ( n, strict = false ) => {
  *           / "2" 2DIGIT           ; 200-249
  *           / "25" %x30-35         ; 250-255
  */
-var ipv4 = ip => {
+var isIPv4 = ip => {
     if( !isString( ip ) ) return false;
     const pieces = ip.split( '.' );
     if( pieces.length !== 4 ) return false;
@@ -108,7 +108,7 @@ var isIPv6 = ip => {
         /**
          * the decimal part should be an valid IPv4 address.
          */
-        if( !ipv4( decimal ) ) return false;
+        if( !isIPv4( decimal ) ) return false;
 
         /**
          * the length of the hexadecimal part should less than 6.
@@ -122,16 +122,6 @@ var isIPv6 = ip => {
     }
     return true;
 };
-
-function encodePathname( pathname ) {
-    if( !pathname ) return pathname;
-    const splitted = pathname.split( '/' );
-    const encoded = [];
-    for( const item of splitted ) {
-        encoded.push( encodeURIComponent( item ) );
-    }
-    return encoded.join( '/' );
-}
 
 function encodeSearch( search ) {
     if( !search ) return search;
@@ -161,7 +151,7 @@ const slashedProtocol = {
     'file:' : true
 };
 
-var parse = url => {
+function parse( url ) {
     if( !isString( url ) ) return false;
     /**
      * scheme = ALPHA * ( ALPHA / DIGIT / "+" / "-" / "." )
@@ -172,7 +162,6 @@ var parse = url => {
     const protocol = scheme.toLowerCase();
     let username = '';
     let password = '';
-    let href = protocol;
     let origin = protocol;
     let port = '';
     let pathname = '/';
@@ -181,7 +170,6 @@ var parse = url => {
     if( slashedProtocol[ protocol ] ) {
         if( /^[:/?#[]@]*$/.test( hier ) ) return false;
         hier = '//' + hier.replace( /^\/+/, '' );
-        href += '//';
         origin += '//';
     }
 
@@ -231,17 +219,6 @@ var parse = url => {
         [ , username = '', password = '', hostname = '', port = '', pathname = '/' ] = matches;
         if( port && port > 65535 ) return false;
 
-        if( username || password ) {
-            if( username ) {
-                href += username;
-            }
-
-            if( password ) {
-                href += ':' + password;
-            }
-            href += '@';
-        }
-
         /**
          * To check the format of IPv4
          * includes: 1.1.1.1, 1.1, 1.1.
@@ -249,7 +226,7 @@ var parse = url => {
          */
         if( /^[\d.]+$/.test( hostname ) && hostname.charAt( 0 ) !== '.' && hostname.indexOf( '..' ) < 0 ) {
             let ip = hostname.replace( /\.+$/, '' );
-            if( !ipv4( ip ) ) {
+            if( !isIPv4( ip ) ) {
                 const pieces = ip.split( '.' );
                 if( pieces.length > 4 ) return false;
                 /**
@@ -266,37 +243,21 @@ var parse = url => {
                     }
                     ip = pieces.join( '.' );
                 }
-                if( !ipv4( ip ) ) return false;
+                if( !isIPv4( ip ) ) return false;
             }
             hostname = ip;
         } else if( hostname.charAt( 0 ) === '[' ) {
             if( !isIPv6( hostname.substr( 1, hostname.length - 2 ) ) ) return false;
         }
 
-        href += hostname;
         origin += hostname;
         if( port ) {
-            href += ':' + port;
             origin += ':' + port;
         }
-        href += pathname;
     } else {
         pathname = hier;
-        href += hier;
         origin = null;
     }
-
-    href += search + hash;
-
-    const host = hostname + ( port ? ':' + port : '' );
-
-    let hierPart = ( hier.substr( 0, 2 ) === '//' && host ) ? '//' : '';
-
-    if( username || password ) {
-        hierPart += `${username||''}:${password||''}@`;
-    }
-
-    hierPart += host;
 
     search = encodeSearch( search );
 
@@ -305,19 +266,46 @@ var parse = url => {
     }
 
     return {
-        href,
         protocol,
-        origin,
         username,
         password,
         hostname,
-        host : hostname + ( port ? ':' + port : '' ),
-        pathname : encodePathname( pathname ),
+        pathname,
+        origin,
         search,
         hash,
-        port,
-        hier : hierPart
+        port
     };
+}
+
+parse.composite = function( pieces ) {
+    const {
+        protocol = '',
+        username = '',
+        password = '',
+        hostname = '',
+        port = '',
+        pathname = '',
+        search = '',
+        hash = ''
+    } = pieces;
+
+    let href = protocol;
+
+    if( slashedProtocol[ protocol ] ) {
+        href += '//';
+    }
+
+    if( username || password ) {
+        href += `${username}:${password}@`;
+    }
+
+    href += hostname;
+    port && ( href += `:${port}` );
+
+    href += `${pathname}${search}`;
+    href += hash;
+    return href;
 };
 
 const resolvePath = ( from, to ) => {
@@ -335,6 +323,16 @@ const resolvePath = ( from, to ) => {
     if( path.charAt( 0 ) === '/' ) return path;
     return '/' + path;
 };
+
+function hier( url ) {
+    return parse.composite( {
+        protocol : url.protocol,
+        hostname : url.hostname,
+        password : url.password,
+        username : url.username,
+        port : url.port
+    } ) 
+}
 
 var resolve = ( from, to ) => {
     const original = from;
@@ -359,22 +357,22 @@ var resolve = ( from, to ) => {
 
     // absolute path
     if( to.charAt( 0 ) === '/' ) {
-        return from.protocol + from.hier + to;
+        return hier( from ) + to;
     }
 
     if( /^\.+\//.test( to ) ) {
-        return from.protocol + from.hier + resolvePath( from.pathname, to );
+        return hier( from ) + resolvePath( from.pathname, to );
     }
 
     if( to.charAt( 0 ) === '#' ) {
-        return from.href.replace( /#.*$/i, '' ) + to;
+        return parse.composite( from ).replace( /#.*$/i, '' ) + to;
     }
 
     if( to.charAt( 0 ) === '?' ) {
-        return from.protocol + from.hier + from.pathname + to;
+        return hier( from ) + from.pathname + to;
     }
 
-    return from.protocol + from.hier + resolvePath( from.pathname, '/' + to );
+    return hier( from ) + resolvePath( from.pathname, '/' + to );
 };
 
 const decode = str => decodeURIComponent( String( str ).replace( /\+/g, ' ' ) );
@@ -483,7 +481,7 @@ class URLSearchParams {
         const a = this.dict;
         const n = a.length;
 
-        if( n <= 2 ) ; else if( n < 100 ) {
+        if( n < 2 ) ; else if( n < 100 ) {
             // insertion sort
             for( let i = 1; i < n; i += 1 ) {
                 const item = a[ i ];
@@ -587,12 +585,6 @@ const validBaseProtocols = {
     'gopher' : true
 };
 
-const attrs = [
-    'href', 'origin',
-    'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
-    'username', 'password', 'searchParams'
-];
-
 class URL {
     constructor( url, base ) {
         if( URL.prototype.isPrototypeOf( url ) ) {
@@ -616,19 +608,42 @@ class URL {
                 throw new TypeError( 'Failed to construct "URL": Invalid URL' );
             }
         }
-
-        if( base ) {
-            url = resolve( base, url );
-        }
-
-        const parsed = parse( url );
-
-        for( const item of attrs ) {
-            this[ item ] = parsed[ item ];
-        }
-
-        this.searchParams = new URLSearchParams( this.search ); 
+        if( base ) url = resolve( base, url );
+        Object.assign( this, parse( url ) );
     }
+
+    get href() {
+        return parse.composite( {
+            protocol : this.protocol,
+            username : this.username,
+            password : this.password,
+            hostname : this.hostname,
+            pathname : this.pathname,
+            search : this.search,
+            hash : this.hash,
+            port : this.port
+        } );
+    }
+
+    get host() {
+        return this.port ? `${this.hostname}:${this.port}` : this.hostname;
+    }
+
+    set host( value ) {
+        const [ hostname = '', port = '' ] = String( value ).split( ':' );
+        this.hostname = hostname;
+        this.port = port;
+    }
+
+    get search() {
+        const search = this.searchParams.toString();
+        return search ? `?${search}` : '';
+    }
+
+    set search( value ) {
+        this.searchParams = new URLSearchParams( value.replace( /^[?&]+/, '' ) );
+    }
+
     toString() {
         return this.href;
     }

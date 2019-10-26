@@ -104,7 +104,7 @@ export default class URLSearchParams {
         const a = this.dict;
         const n = a.length;
 
-        if( n <= 2 ) { // eslint-disable-line 
+        if( n < 2 ) { // eslint-disable-line 
         } else if( n < 100 ) {
             // insertion sort
             for( let i = 1; i < n; i += 1 ) {

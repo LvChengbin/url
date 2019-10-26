@@ -2,16 +2,6 @@ import isString from '@lvchengbin/is/src/string';
 import isIPv4 from '@lvchengbin/is/src/ipv4';
 import isIPv6 from '@lvchengbin/is/src/ipv6';
 
-function encodePathname( pathname ) {
-    if( !pathname ) return pathname;
-    const splitted = pathname.split( '/' );
-    const encoded = [];
-    for( const item of splitted ) {
-        encoded.push( encodeURIComponent( item ) );
-    }
-    return encoded.join( '/' );
-}
-
 function encodeSearch( search ) {
     if( !search ) return search;
     return '?' + search.substr( 1 ).replace( /[^&=]/g, m => encodeURIComponent( m ) );
@@ -40,7 +30,7 @@ const slashedProtocol = {
     'file:' : true
 };
 
-export default url => {
+function parse( url ) {
     if( !isString( url ) ) return false;
     /**
      * scheme = ALPHA * ( ALPHA / DIGIT / "+" / "-" / "." )
@@ -51,7 +41,6 @@ export default url => {
     const protocol = scheme.toLowerCase();
     let username = '';
     let password = '';
-    let href = protocol;
     let origin = protocol;
     let port = '';
     let pathname = '/';
@@ -60,7 +49,6 @@ export default url => {
     if( slashedProtocol[ protocol ] ) {
         if( /^[:/?#[]@]*$/.test( hier ) ) return false;
         hier = '//' + hier.replace( /^\/+/, '' );
-        href += '//';
         origin += '//';
     }
 
@@ -110,17 +98,6 @@ export default url => {
         [ , username = '', password = '', hostname = '', port = '', pathname = '/' ] = matches;
         if( port && port > 65535 ) return false;
 
-        if( username || password ) {
-            if( username ) {
-                href += username;
-            }
-
-            if( password ) {
-                href += ':' + password;
-            }
-            href += '@';
-        }
-
         /**
          * To check the format of IPv4
          * includes: 1.1.1.1, 1.1, 1.1.
@@ -152,30 +129,14 @@ export default url => {
             if( !isIPv6( hostname.substr( 1, hostname.length - 2 ) ) ) return false;
         }
 
-        href += hostname;
         origin += hostname;
         if( port ) {
-            href += ':' + port;
             origin += ':' + port;
         }
-        href += pathname;
     } else {
         pathname = hier;
-        href += hier;
         origin = null;
     }
-
-    href += search + hash;
-
-    const host = hostname + ( port ? ':' + port : '' );
-
-    let hierPart = ( hier.substr( 0, 2 ) === '//' && host ) ? '//' : '';
-
-    if( username || password ) {
-        hierPart += `${username||''}:${password||''}@`;
-    }
-
-    hierPart += host;
 
     search = encodeSearch( search );
 
@@ -184,18 +145,46 @@ export default url => {
     }
 
     return {
-        href,
         protocol,
-        origin,
         username,
         password,
         hostname,
-        host : hostname + ( port ? ':' + port : '' ),
-        pathname : encodePathname( pathname ),
+        pathname,
+        origin,
         search,
         hash,
-        port,
-        hier : hierPart
+        port
     };
-};
+}
 
+parse.composite = function( pieces ) {
+    const {
+        protocol = '',
+        username = '',
+        password = '',
+        hostname = '',
+        port = '',
+        pathname = '',
+        search = '',
+        hash = ''
+    } = pieces;
+
+    let href = protocol;
+
+    if( slashedProtocol[ protocol ] ) {
+        href += '//';
+    }
+
+    if( username || password ) {
+        href += `${username}:${password}@`;
+    }
+
+    href += hostname;
+    port && ( href += `:${port}` );
+
+    href += `${pathname}${search}`;
+    href += hash;
+    return href;
+}
+
+export default parse;

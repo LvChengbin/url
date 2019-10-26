@@ -16,6 +16,16 @@ const resolvePath = ( from, to ) => {
     return '/' + path;
 }
 
+function hier( url ) {
+    return parse.composite( {
+        protocol : url.protocol,
+        hostname : url.hostname,
+        password : url.password,
+        username : url.username,
+        port : url.port
+    } ) 
+}
+
 export default ( from, to ) => {
     const original = from;
     /**
@@ -39,20 +49,20 @@ export default ( from, to ) => {
 
     // absolute path
     if( to.charAt( 0 ) === '/' ) {
-        return from.protocol + from.hier + to;
+        return hier( from ) + to;
     }
 
     if( /^\.+\//.test( to ) ) {
-        return from.protocol + from.hier + resolvePath( from.pathname, to );
+        return hier( from ) + resolvePath( from.pathname, to );
     }
 
     if( to.charAt( 0 ) === '#' ) {
-        return from.href.replace( /#.*$/i, '' ) + to;
+        return parse.composite( from ).replace( /#.*$/i, '' ) + to;
     }
 
     if( to.charAt( 0 ) === '?' ) {
-        return from.protocol + from.hier + from.pathname + to;
+        return hier( from ) + from.pathname + to;
     }
 
-    return from.protocol + from.hier + resolvePath( from.pathname, '/' + to );
+    return hier( from ) + resolvePath( from.pathname, '/' + to );
 };

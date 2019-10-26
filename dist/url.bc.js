@@ -1,7 +1,7 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
     typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (factory((global.JURL = {})));
+    (global = global || self, factory(global.JURL = {}));
 }(this, (function (exports) { 'use strict';
 
     function isString (str) { return typeof str === 'string' || str instanceof String; }
@@ -43,7 +43,7 @@
      *           / "2" 2DIGIT           ; 200-249
      *           / "25" %x30-35         ; 250-255
      */
-    function ipv4 (ip) {
+    function isIPv4 (ip) {
         if( !isString( ip ) ) { return false; }
         var pieces = ip.split( '.' );
         if( pieces.length !== 4 ) { return false; }
@@ -116,7 +116,7 @@
             /**
              * the decimal part should be an valid IPv4 address.
              */
-            if( !ipv4( decimal ) ) { return false; }
+            if( !isIPv4( decimal ) ) { return false; }
 
             /**
              * the length of the hexadecimal part should less than 6.
@@ -129,18 +129,6 @@
             if( ip.split( ':' ).length > 8 ) { return false; }
         }
         return true;
-    }
-
-    function encodePathname( pathname ) {
-        if( !pathname ) { return pathname; }
-        var splitted = pathname.split( '/' );
-        var encoded = [];
-        for( var i = 0, list = splitted; i < list.length; i += 1 ) {
-            var item = list[i];
-
-            encoded.push( encodeURIComponent( item ) );
-        }
-        return encoded.join( '/' );
     }
 
     function encodeSearch( search ) {
@@ -171,7 +159,7 @@
         'file:' : true
     };
 
-    function parse (url) {
+    function parse( url ) {
         var assign;
 
         if( !isString( url ) ) { return false; }
@@ -187,7 +175,6 @@
         var protocol = scheme.toLowerCase();
         var username = '';
         var password = '';
-        var href = protocol;
         var origin = protocol;
         var port = '';
         var pathname = '/';
@@ -196,7 +183,6 @@
         if( slashedProtocol[ protocol ] ) {
             if( /^[:/?#[]@]*$/.test( hier ) ) { return false; }
             hier = '//' + hier.replace( /^\/+/, '' );
-            href += '//';
             origin += '//';
         }
 
@@ -246,17 +232,6 @@
             (assign = matches, username = assign[1], username = username === void 0 ? '' : username, password = assign[2], password = password === void 0 ? '' : password, hostname = assign[3], hostname = hostname === void 0 ? '' : hostname, port = assign[4], port = port === void 0 ? '' : port, pathname = assign[5], pathname = pathname === void 0 ? '/' : pathname);
             if( port && port > 65535 ) { return false; }
 
-            if( username || password ) {
-                if( username ) {
-                    href += username;
-                }
-
-                if( password ) {
-                    href += ':' + password;
-                }
-                href += '@';
-            }
-
             /**
              * To check the format of IPv4
              * includes: 1.1.1.1, 1.1, 1.1.
@@ -264,7 +239,7 @@
              */
             if( /^[\d.]+$/.test( hostname ) && hostname.charAt( 0 ) !== '.' && hostname.indexOf( '..' ) < 0 ) {
                 var ip = hostname.replace( /\.+$/, '' );
-                if( !ipv4( ip ) ) {
+                if( !isIPv4( ip ) ) {
                     var pieces = ip.split( '.' );
                     if( pieces.length > 4 ) { return false; }
                     /**
@@ -281,37 +256,21 @@
                         }
                         ip = pieces.join( '.' );
                     }
-                    if( !ipv4( ip ) ) { return false; }
+                    if( !isIPv4( ip ) ) { return false; }
                 }
                 hostname = ip;
             } else if( hostname.charAt( 0 ) === '[' ) {
                 if( !isIPv6( hostname.substr( 1, hostname.length - 2 ) ) ) { return false; }
             }
 
-            href += hostname;
             origin += hostname;
             if( port ) {
-                href += ':' + port;
                 origin += ':' + port;
             }
-            href += pathname;
         } else {
             pathname = hier;
-            href += hier;
             origin = null;
         }
-
-        href += search + hash;
-
-        var host = hostname + ( port ? ':' + port : '' );
-
-        var hierPart = ( hier.substr( 0, 2 ) === '//' && host ) ? '//' : '';
-
-        if( username || password ) {
-            hierPart += (username||'') + ":" + (password||'') + "@";
-        }
-
-        hierPart += host;
 
         search = encodeSearch( search );
 
@@ -320,20 +279,45 @@
         }
 
         return {
-            href: href,
             protocol: protocol,
-            origin: origin,
             username: username,
             password: password,
             hostname: hostname,
-            host : hostname + ( port ? ':' + port : '' ),
-            pathname : encodePathname( pathname ),
+            pathname: pathname,
+            origin: origin,
             search: search,
             hash: hash,
-            port: port,
-            hier : hierPart
+            port: port
         };
     }
+
+    parse.composite = function( pieces ) {
+        var protocol = pieces.protocol; if ( protocol === void 0 ) protocol = '';
+        var username = pieces.username; if ( username === void 0 ) username = '';
+        var password = pieces.password; if ( password === void 0 ) password = '';
+        var hostname = pieces.hostname; if ( hostname === void 0 ) hostname = '';
+        var port = pieces.port; if ( port === void 0 ) port = '';
+        var pathname = pieces.pathname; if ( pathname === void 0 ) pathname = '';
+        var search = pieces.search; if ( search === void 0 ) search = '';
+        var hash = pieces.hash; if ( hash === void 0 ) hash = '';
+
+        var href = protocol;
+
+        if( slashedProtocol[ protocol ] ) {
+            href += '//';
+        }
+
+        if( username || password ) {
+            href += username + ":" + password + "@";
+        }
+
+        href += hostname;
+        port && ( href += ":" + port );
+
+        href += "" + pathname + search;
+        href += hash;
+        return href;
+    };
 
     var resolvePath = function ( from, to ) {
         var dot = /\/\.\//g;
@@ -350,6 +334,16 @@
         if( path.charAt( 0 ) === '/' ) { return path; }
         return '/' + path;
     };
+
+    function hier( url ) {
+        return parse.composite( {
+            protocol : url.protocol,
+            hostname : url.hostname,
+            password : url.password,
+            username : url.username,
+            port : url.port
+        } ) 
+    }
 
     function resolve ( from, to ) {
         var original = from;
@@ -374,22 +368,22 @@
 
         // absolute path
         if( to.charAt( 0 ) === '/' ) {
-            return from.protocol + from.hier + to;
+            return hier( from ) + to;
         }
 
         if( /^\.+\//.test( to ) ) {
-            return from.protocol + from.hier + resolvePath( from.pathname, to );
+            return hier( from ) + resolvePath( from.pathname, to );
         }
 
         if( to.charAt( 0 ) === '#' ) {
-            return from.href.replace( /#.*$/i, '' ) + to;
+            return parse.composite( from ).replace( /#.*$/i, '' ) + to;
         }
 
         if( to.charAt( 0 ) === '?' ) {
-            return from.protocol + from.hier + from.pathname + to;
+            return hier( from ) + from.pathname + to;
         }
 
-        return from.protocol + from.hier + resolvePath( from.pathname, '/' + to );
+        return hier( from ) + resolvePath( from.pathname, '/' + to );
     }
 
     var decode = function (str) { return decodeURIComponent( String( str ).replace( /\+/g, ' ' ) ); };
@@ -505,7 +499,7 @@
         var a = this.dict;
         var n = a.length;
 
-        if( n <= 2 ) ; else if( n < 100 ) {
+        if( n < 2 ) ; else if( n < 100 ) {
             // insertion sort
             for( var i = 1; i < n; i += 1 ) {
                 var item = a[ i ];
@@ -616,12 +610,6 @@
         'gopher' : true
     };
 
-    var attrs = [
-        'href', 'origin',
-        'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
-        'username', 'password', 'searchParams'
-    ];
-
     var URL = function URL( url, base ) {
         if( URL.prototype.isPrototypeOf( url ) ) {
             return new URL( url.href );
@@ -634,8 +622,8 @@
         url = String( url );
 
         if( base !== undefined ) {
-            var parsed$1 = parse( base );
-            if( !parsed$1 || !validBaseProtocols[ parsed$1.protocol ] ) {
+            var parsed = parse( base );
+            if( !parsed || !validBaseProtocols[ parsed.protocol ] ) {
                 throw new TypeError( 'Failed to construct "URL": Invalid base URL' );
             }
             if( parse( url ) ) { base = null; }
@@ -644,27 +632,54 @@
                 throw new TypeError( 'Failed to construct "URL": Invalid URL' );
             }
         }
-
-        if( base ) {
-            url = resolve( base, url );
-        }
-
-        var parsed = parse( url );
-
-        for( var i = 0, list = attrs; i < list.length; i += 1 ) {
-            var item = list[i];
-
-            this[ item ] = parsed[ item ];
-        }
-
-        this.searchParams = new URLSearchParams( this.search ); 
+        if( base ) { url = resolve( base, url ); }
+        Object.assign( this, parse( url ) );
     };
+
+    var prototypeAccessors = { href: { configurable: true },host: { configurable: true },search: { configurable: true } };
+
+    prototypeAccessors.href.get = function () {
+        return parse.composite( {
+            protocol : this.protocol,
+            username : this.username,
+            password : this.password,
+            hostname : this.hostname,
+            pathname : this.pathname,
+            search : this.search,
+            hash : this.hash,
+            port : this.port
+        } );
+    };
+
+    prototypeAccessors.host.get = function () {
+        return this.port ? ((this.hostname) + ":" + (this.port)) : this.hostname;
+    };
+
+    prototypeAccessors.host.set = function ( value ) {
+        var ref = String( value ).split( ':' );
+            var hostname = ref[0]; if ( hostname === void 0 ) hostname = '';
+            var port = ref[1]; if ( port === void 0 ) port = '';
+        this.hostname = hostname;
+        this.port = port;
+    };
+
+    prototypeAccessors.search.get = function () {
+        var search = this.searchParams.toString();
+        return search ? ("?" + search) : '';
+    };
+
+    prototypeAccessors.search.set = function ( value ) {
+        this.searchParams = new URLSearchParams( value.replace( /^[?&]+/, '' ) );
+    };
+
     URL.prototype.toString = function toString () {
         return this.href;
     };
     URL.prototype.toJSON = function toJSON () {
         return this.href;
     };
+
+    Object.defineProperties( URL.prototype, prototypeAccessors );
 
     exports.URL = URL;
     exports.URLSearchParams = URLSearchParams;

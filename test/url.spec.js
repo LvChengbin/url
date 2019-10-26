@@ -101,6 +101,70 @@ describe( 'URL', () => {
         } );
     } );
 
+    describe( 'host', () => {
+        it( 'host = hostname + port', () => {
+            const href = 'http://192.168.0.1:3942/a/b/c/d?x=1&y=2#z';
+            expect( new URL( href ).host ).toEqual( '192.168.0.1:3942' );
+        } );
+
+        it( 'port is empty', () => {
+            const href = 'http://192.168.0.1/a/b/c/d?x=1&y=2#z';
+            expect( new URL( href ).host ).toEqual( '192.168.0.1' );
+        } );
+
+        it( 'set hostname', () => {
+            const uri = new URL( 'http://192.168.0.1/a/b/c/d?x=1&y=2#z' );
+            expect( uri.host ).toEqual( '192.168.0.1' );
+            uri.hostname = 'localhost';
+            expect( uri.host ).toEqual( 'localhost' );
+        } );
+
+        it( 'set port', () => {
+            const uri = new URL( 'http://192.168.0.1/a/b/c/d?x=1&y=2#z' );
+            expect( uri.host ).toEqual( '192.168.0.1' );
+            uri.port = '4567';
+            expect( uri.host ).toEqual( '192.168.0.1:4567' );
+        } );
+
+        it( 'set host', () => {
+            const uri = new URL( 'http://192.168.0.1/a/b/c/d?x=1&y=2#z' );
+            expect( uri.host ).toEqual( '192.168.0.1' );
+            uri.host = 'localhost:4567';
+            expect( uri.host ).toEqual( 'localhost:4567' );
+            expect( uri.hostname ).toEqual( 'localhost' );
+            expect( uri.port ).toEqual( '4567' );
+        } );
+
+        it( 'set empty host', () => {
+            const uri = new URL( 'http://192.168.0.1/a/b/c/d?x=1&y=2#z' );
+            expect( uri.host ).toEqual( '192.168.0.1' );
+            uri.host = '';
+            expect( uri.host ).toEqual( '' );
+            expect( uri.hostname ).toEqual( '' );
+            expect( uri.port ).toEqual( '' );
+        } );
+    } );
+
+
+    describe( 'search', () => {
+        it( 'should start with a question mark(?)', () => {
+            const uri = new URL( 'http://localhost/path?x=1&y=2' ); 
+            expect( uri.search ).toEqual( '?x=1&y=2' );
+        } );
+
+        it( 'shold have been changed after seachParams.sort()', () => {
+            const uri = new URL( 'http://localhost/path?y=2&x=1' ); 
+            uri.searchParams.sort();
+            expect( uri.search ).toEqual( '?x=1&y=2' );
+        } );
+
+        it( 'set value to search will change ths searchParams or the uri', () => {
+            const uri = new URL( 'http://localhost/path?y=2&x=1' ); 
+            uri.search = 'a=1&b=2';
+            expect( uri.searchParams.toString() ).toEqual( 'a=1&b=2' );
+        } );
+    } );
+
 } );
 
 describe( 'URLSearchParams', () => {

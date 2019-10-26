@@ -10,12 +10,6 @@ const validBaseProtocols = {
     'gopher' : true
 };
 
-const attrs = [
-    'href', 'origin',
-    'host', 'hash', 'hostname',  'pathname', 'port', 'protocol', 'search',
-    'username', 'password', 'searchParams'
-];
-
 export default class URL {
     constructor( url, base ) {
         if( URL.prototype.isPrototypeOf( url ) ) {
@@ -39,19 +33,42 @@ export default class URL {
                 throw new TypeError( 'Failed to construct "URL": Invalid URL' );
             }
         }
-
-        if( base ) {
-            url = resolve( base, url );
-        }
-
-        const parsed = parse( url );
-
-        for( const item of attrs ) {
-            this[ item ] = parsed[ item ];
-        }
-
-        this.searchParams = new URLSearchParams( this.search ); 
+        if( base ) url = resolve( base, url );
+        Object.assign( this, parse( url ) );
     }
+
+    get href() {
+        return parse.composite( {
+            protocol : this.protocol,
+            username : this.username,
+            password : this.password,
+            hostname : this.hostname,
+            pathname : this.pathname,
+            search : this.search,
+            hash : this.hash,
+            port : this.port
+        } );
+    }
+
+    get host() {
+        return this.port ? `${this.hostname}:${this.port}` : this.hostname;
+    }
+
+    set host( value ) {
+        const [ hostname = '', port = '' ] = String( value ).split( ':' );
+        this.hostname = hostname;
+        this.port = port;
+    }
+
+    get search() {
+        const search = this.searchParams.toString();
+        return search ? `?${search}` : '';
+    }
+
+    set search( value ) {
+        this.searchParams = new URLSearchParams( value.replace( /^[?&]+/, '' ) );
+    }
+
     toString() {
         return this.href;
     }

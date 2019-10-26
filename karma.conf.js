@@ -7,10 +7,7 @@ const resolve = require( 'rollup-plugin-node-resolve' );
 const buble = require( 'rollup-plugin-buble' );
 
 const rollupPlugins = [
-    resolve( {
-        module : true,
-        jsnext : true
-    } ),
+    resolve( { mainFields : [ 'module' ] } ),
 ];
 
 if( argv.es5 ) {
